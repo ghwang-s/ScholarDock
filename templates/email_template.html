@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Research Collaboration Invitation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+        .highlight-box {
+            background-color: #e8f4fd;
+            border-left: 4px solid #3c9ad8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .personalized-section {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        a {
+            color: #2980b9;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+        .signature {
+            margin-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 20px;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #7f8c8d;
+            border-top: 1px solid #bdc3c7;
+            padding-top: 15px;
+        }
+        .wechat-info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 3px solid #28a745;
+        }
+        .results-highlight {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="greeting">
+            {% if author_name == "Fellow Researcher" or "authors of paper" in author_name.lower() %}
+            <strong>Dear Authors of the "{{ paper_title }}" Paper,</strong>
+            {% else %}
+            <strong>Dear {{ author_name }},</strong>
+            {% endif %}
+        </div>
+
+        <p>My name is <strong>Guanghui Wang</strong> from the <strong>University of Chinese Academy of Sciences</strong>.</p>
+
+        <div class="personalized-section">
+            {% if author_name == "Fellow Researcher" %}
+            <p><strong>Personal Note:</strong> I've been following the research work with great interest, particularly the paper "<em>{{ paper_title }}</em>"{{ paper_year_text }}. The insights into <strong>knowledge distillation</strong> are highly valuable and align beautifully with our recent findings.</p>
+            {% else %}
+            <p><strong>Personal Note:</strong> I've been following your work with great interest, particularly your paper "<em>{{ paper_title }}</em>"{{ paper_year_text }}. Your insights into <strong>knowledge distillation</strong> are highly valuable and align beautifully with our recent findings.</p>
+            {% endif %}
+        </div>
+
+        <p>I wanted to share our recent breakthrough that addresses a fundamental dilemma in knowledge distillation concerning the trade-off between Forward and Reverse KL-divergence:</p>
+        
+        <ul>
+            <li><strong>FKLD (mode-covering)</strong> often proves too lenient, failing to guide the student towards the most critical aspects of the teacher's knowledge.</li>
+            <li><strong>RKLD (mode-seeking)</strong> can be overly aggressive, causing the student to miss the rich, nuanced information within the teacher's distribution.</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <p><strong>🎉 Exciting News:</strong> Our work, "<em><u>ABKD: Pursuing a Proper Allocation of the Probability Mass in Knowledge Distillation via α-β-Divergence</u></em>," introduces a unified framework to navigate this balance and was recently accepted for an <strong>Oral presentation (Top 1.0%) at ICML 2025</strong>.</p>
+        </div>
+        
+        <p>We believe our approach of using α-β divergence to flexibly control knowledge transfer could be highly relevant to your research. We conducted extensive validation on a large scale (<strong>17 NLP/vision benchmarks</strong>, <strong>12 teacher-student architectures</strong>) and observed consistently strong improvements.</p>
+        
+        <div class="results-highlight">
+            <p><strong>Key Results:</strong> By modifying only the loss function, ABKD achieves performance improvements of <strong>0.81 to 3.31 ROUGE-L scores</strong> over FKLD and RKLD on five instruction-response datasets when distilling GPT-2 XL (1.5B) into GPT-2 (0.1B).</p>
+        </div>
+        
+        <div class="highlight-box">
+            <p><strong>🔗 Open Source Contribution:</strong></p>
+            <p><strong><a href="https://github.com/ghwang-s">📄 Full Paper & Complete Code Repository</u></strong></p>
+        </div>
+        
+        <p>We would be very interested to hear your thoughts and are happy to discuss our findings further. If you find our work or code helpful for your research, we would be grateful for a citation.</p>
+        
+        <div class="wechat-info">
+            <p><strong>💬 For informal discussion:</strong> I'm also available on WeChat (ID: <strong>15279836691</strong>)</p>
+        </div>
+        
+        <p>Thank you for your time and consideration. I look forward to the possibility of connecting!</p>
+        
+        <div class="signature">
+            <p>Best regards,</p>
+            <p><strong>Guanghui Wang</strong><br>
+            <em>Master's Student</em><br>
+            University of Chinese Academy of Sciences<br>
+            Email: <a href="mailto:{{ sender_email }}">{{ sender_email }}</a></p>
+        </div>
+        
+        <div class="footer">
+            <p>If you would prefer not to receive research collaboration emails in the future, please reply with "UNSUBSCRIBE" in the subject line. This email was sent because of your valuable research contributions in knowledge distillation and related machine learning fields.</p>
+        </div>
+    </div>
+</body>
+</html>
