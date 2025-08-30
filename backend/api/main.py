@@ -746,7 +746,10 @@ async def _batch_send_emails_task(
 
         sender = get_email_sender()
 
-        # 统计总邮箱数（排除重复论文）
+        # 创建一个集合来跟踪已经发送的邮箱地址
+        sent_emails = set()
+
+        # 统计总邮箱数（排除重复论文和重复邮箱）
         total_emails = 0
         skipped_articles = 0
         for article in search.articles:
@@ -757,10 +760,17 @@ async def _batch_send_emails_task(
                 print(f"⏭️ 跳过重复论文: {article.title[:50]}...")
                 continue
 
+            # 统计作者邮箱（去重）
             if include_author_emails and article.author_emails:
-                total_emails += len([e for e in article.author_emails if e.get('email')])
+                for author_email in article.author_emails:
+                    if author_email.get('email') and author_email['email'] not in sent_emails:
+                        total_emails += 1
+
+            # 统计PDF邮箱（去重）
             if include_pdf_emails and article.pdf_fallback_emails:
-                total_emails += len(article.pdf_fallback_emails)
+                for pdf_email in article.pdf_fallback_emails:
+                    if pdf_email not in sent_emails:
+                        total_emails += 1
 
         print(f"📊 统计结果: 总论文 {len(search.articles)} 篇，跳过重复 {skipped_articles} 篇，待发送邮箱 {total_emails} 个")
 
@@ -789,7 +799,7 @@ async def _batch_send_emails_task(
             # 发送作者邮箱
             if include_author_emails and article.author_emails:
                 for author_email in article.author_emails:
-                    if author_email.get('email'):
+                    if author_email.get('email') and author_email['email'] not in sent_emails:
                         try:
                             template_data = {
                                 'author_name': author_email.get('name', 'Fellow Researcher'),
@@ -807,6 +817,8 @@ async def _batch_send_emails_task(
 
                             if result.get('success'):
                                 sent_count += 1
+                                # 将邮箱添加到已发送集合中
+                                sent_emails.add(author_email['email'])
                                 print(f"✅ 成功发送邮件到 {author_email['email']}")
                             else:
                                 failed_count += 1
@@ -835,47 +847,50 @@ async def _batch_send_emails_task(
             # 发送PDF邮箱
             if include_pdf_emails and article.pdf_fallback_emails:
                 for pdf_email in article.pdf_fallback_emails:
-                    try:
-                        template_data = {
-                            'author_name': 'Fellow Researcher',
-                            'paper_title': article.title,
-                            'paper_venue': article.venue,
-                            'paper_year': article.year,
-                            'paper_citations': article.citations
-                        }
+                    if pdf_email not in sent_emails:
+                        try:
+                            template_data = {
+                                'author_name': 'Fellow Researcher',
+                                'paper_title': article.title,
+                                'paper_venue': article.venue,
+                                'paper_year': article.year,
+                                'paper_citations': article.citations
+                            }
 
-                        result = sender.send_email(
-                            to_email=pdf_email,
-                            subject=subject,
-                            template_data=template_data
-                        )
+                            result = sender.send_email(
+                                to_email=pdf_email,
+                                subject=subject,
+                                template_data=template_data
+                            )
 
-                        if result.get('success'):
-                            sent_count += 1
-                            print(f"✅ 成功发送邮件到 {pdf_email}")
-                        else:
+                            if result.get('success'):
+                                sent_count += 1
+                                # 将邮箱添加到已发送集合中
+                                sent_emails.add(pdf_email)
+                                print(f"✅ 成功发送邮件到 {pdf_email}")
+                            else:
+                                failed_count += 1
+                                print(f"❌ 发送邮件到 {pdf_email} 失败: {result.get('message')}")
+
+                        except Exception as e:
                             failed_count += 1
-                            print(f"❌ 发送邮件到 {pdf_email} 失败: {result.get('message')}")
+                            print(f"❌ 发送邮件到 {pdf_email} 异常: {e}")
 
-                    except Exception as e:
-                        failed_count += 1
-                        print(f"❌ 发送邮件到 {pdf_email} 异常: {e}")
+                        # 更新进度
+                        progress = int((sent_count + failed_count) / total_emails * 100)
+                        await send_progress_update(f"batch_email_{search_id}", {
+                            "type": "progress",
+                            "step": "batch_sending",
+                            "title": "批量发送邮件",
+                            "description": f"已发送 {sent_count}/{total_emails} 封邮件",
+                            "progress": progress,
+                            "total": total_emails,
+                            "sent": sent_count,
+                            "failed": failed_count
+                        })
 
-                    # 更新进度
-                    progress = int((sent_count + failed_count) / total_emails * 100)
-                    await send_progress_update(f"batch_email_{search_id}", {
-                        "type": "progress",
-                        "step": "batch_sending",
-                        "title": "批量发送邮件",
-                        "description": f"已发送 {sent_count}/{total_emails} 封邮件",
-                        "progress": progress,
-                        "total": total_emails,
-                        "sent": sent_count,
-                        "failed": failed_count
-                    })
-
-                    # 添加延迟避免发送过快
-                    await asyncio.sleep(5)
+                        # 添加延迟避免发送过快
+                        await asyncio.sleep(5)
 
         # 发送完成消息
         await send_progress_update(f"batch_email_{search_id}", {

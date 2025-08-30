@@ -236,15 +236,6 @@ ScholarDock/
    - 确认使用的是授权码而非登录密码
    - 检查网络连接和代理设置
 
-## 贡献指南
-
-欢迎提交Issue和Pull Request来改进项目：
-
-1. Fork项目
-2. 创建功能分支
-3. 提交更改
-4. 发起Pull Request
-
 ## 许可证
 
 本项目采用MIT许可证，详见[LICENSE](LICENSE)文件。
